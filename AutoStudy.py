@@ -19,12 +19,14 @@ class AutoStudy:
         :return: 返回视频的数量，如果没有视频则返回 0
         """
         try:
+            time.sleep(2)
+            self.browser.switch_to.frame(self.browser.find_element(By.TAG_NAME, "iframe"))
             video_num = self.browser.find_elements(By.TAG_NAME, "iframe")
             return len(video_num)
         except:
             return 0
 
-    def play_video(self, num=0):
+    def play_video(self, num):
         """
         如果当前页面为视频页，则播放视频，如果为答题页则跳过
         :return:
@@ -32,14 +34,13 @@ class AutoStudy:
         if num > 0:
             for i in range(num):
                 time.sleep(2)
-                self.browser.switch_to.frame(self.browser.find_elements(By.TAG_NAME, "iframe")[num])
-                self.browser.switch_to.frame(self.browser.find_element(By.TAG_NAME, "iframe"))
+                self.browser.switch_to.frame(self.browser.find_elements(By.TAG_NAME, "iframe")[i])
                 time.sleep(2)
                 self.browser.find_element(By.XPATH, '//*[@id="video"]/button').click()
                 time.sleep(3)
                 while self.get_process():
                     time.sleep(20)
-                self.browser.switch_to.default_content()
+                self.browser.switch_to.parent_frame()
             self.change_course()
         else:
             self.change_course()
@@ -82,9 +83,9 @@ class AutoStudy:
 
 
 if __name__ == '__main__':
-    study = AutoStudy(35)
+    study = AutoStudy(4)
     study.start(
-        'http://mooc1.mooc.whu.edu.cn/mycourse/studentcourse?courseId=228108910&clazzid=62338069&cpi=197214950&enc'
-        '=6fed49bb1c5da4f191db9ac3491f6f0a&fromMiddle=1&vc=1')
+        'http://mooc1.mooc.whu.edu.cn/mycourse/studentcourse?courseId=228133123&clazzid=62391848&cpi=197214950&enc'
+        '=0d50da100b1d05cfeb24b43d2c74f988&fromMiddle=1&vc=1')
     while 1:
         study.play_video(study.get_video_num())
