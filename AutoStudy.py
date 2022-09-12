@@ -7,32 +7,42 @@ class AutoStudy:
 
     def __init__(self, num):
         """
-        :param num: 选择开始播放的课时(前面所有的课时数+1)
+        :param num: 选择开始播放的课时(要播放的课时前面所有的课时数+1)
         """
         self.number = num
         self.current_course = ' '
         self.browser = webdriver.Chrome(executable_path='chromedriver.exe')
 
-    def play_video(self):
+    def get_video_num(self):
+        """
+            获得当前页面视频的数量
+        :return: 返回视频的数量，如果没有视频则返回 0
+        """
+        try:
+            video_num = self.browser.find_elements(By.TAG_NAME, "iframe")
+            return len(video_num)
+        except:
+            return 0
+
+    def play_video(self, num=0):
         """
         如果当前页面为视频页，则播放视频，如果为答题页则跳过
         :return:
         """
-        time.sleep(2)
-        try:
-            self.browser.switch_to.frame(self.browser.find_element(By.TAG_NAME, "iframe"))
-            self.browser.switch_to.frame(self.browser.find_element(By.TAG_NAME, "iframe"))
-            time.sleep(2)
-            self.browser.find_element(By.XPATH, '//*[@id="video"]/button').click()
-            time.sleep(3)
-            self.video()
-        except:
-            self.number = self.number + 1
-            self.browser.switch_to.default_content()
-            self.browser.find_elements(By.CLASS_NAME, 'hideChapterNumber')[self.number].click()
-            self.current_course = self.browser.find_elements(By.CLASS_NAME, 'hideChapterNumber')[
-                self.number].get_attribute(
-                'textContent')
+        if num > 0:
+            for i in range(num):
+                time.sleep(2)
+                self.browser.switch_to.frame(self.browser.find_elements(By.TAG_NAME, "iframe")[num])
+                self.browser.switch_to.frame(self.browser.find_element(By.TAG_NAME, "iframe"))
+                time.sleep(2)
+                self.browser.find_element(By.XPATH, '//*[@id="video"]/button').click()
+                time.sleep(3)
+                while self.get_process():
+                    time.sleep(20)
+                self.browser.switch_to.default_content()
+            self.change_course()
+        else:
+            self.change_course()
 
     def start(self, url):
         """
@@ -45,6 +55,17 @@ class AutoStudy:
         self.current_course = self.browser.find_elements(By.CLASS_NAME, "chapterNumber")[self.number].get_attribute(
             'textContent')
         self.browser.find_elements(By.CLASS_NAME, "chapterNumber")[self.number].click()
+
+    def change_course(self):
+        """
+        点击下一课时
+        :return:
+        """
+        self.number = self.number + 1
+        self.browser.switch_to.default_content()
+        self.browser.find_elements(By.CLASS_NAME, 'hideChapterNumber')[self.number].click()
+        self.current_course = self.browser.find_elements(By.CLASS_NAME, 'hideChapterNumber')[self.number].get_attribute(
+            'textContent')
 
     def get_process(self):
         """
@@ -59,19 +80,6 @@ class AutoStudy:
         else:
             return 1
 
-    def video(self):
-        """
-        每隔20s执行一次get_process，在当前视频播放完后点击下一课时
-        :return:
-        """
-        while self.get_process():
-            time.sleep(20)
-        self.number = self.number + 1
-        self.browser.switch_to.default_content()
-        self.browser.find_elements(By.CLASS_NAME, 'hideChapterNumber')[self.number].click()
-        self.current_course = self.browser.find_elements(By.CLASS_NAME, 'hideChapterNumber')[self.number].get_attribute(
-            'textContent')
-
 
 if __name__ == '__main__':
     study = AutoStudy(35)
@@ -79,4 +87,4 @@ if __name__ == '__main__':
         'http://mooc1.mooc.whu.edu.cn/mycourse/studentcourse?courseId=228108910&clazzid=62338069&cpi=197214950&enc'
         '=6fed49bb1c5da4f191db9ac3491f6f0a&fromMiddle=1&vc=1')
     while 1:
-        study.play_video()
+        study.play_video(study.get_video_num())
